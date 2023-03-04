@@ -1,5 +1,6 @@
 package com.project.sbt.model.dto;
 
+import com.project.sbt.model.keys.StudentPrimaryKey;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -16,18 +17,14 @@ import lombok.*;
 @Table(name = "FF_STUDENT")
 public class StudentDTO extends AbstractEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
+    @EmbeddedId
+    private StudentPrimaryKey studentPrimaryKey;
 
     @NotNull(message = "Student Name cannot be empty")
     @Column(name = "student_name", nullable= false)
     private String studentName;
 
-    @NotNull(message = "Student Id cannot be empty")
-    @Column(name = "student_id", nullable= false, unique = true)
-    private String studentId;
+
 
     @NotNull(message = "Student Email cannot be empty")
     @Column(name = "student_email", nullable = false)
@@ -45,9 +42,6 @@ public class StudentDTO extends AbstractEntity {
     private boolean isEnabled;
 
 
-
-    @ManyToOne
-    private UniversityDTO university;
 
     @Transient
     private String errors;

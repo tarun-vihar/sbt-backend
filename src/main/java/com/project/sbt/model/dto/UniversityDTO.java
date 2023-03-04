@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "FF_UNIVERSITY")
+
 public class UniversityDTO extends AbstractEntity{
 
     @Id
@@ -40,7 +41,7 @@ public class UniversityDTO extends AbstractEntity{
     @Column(name = "url")
     private String url;
 
-    @OneToMany(mappedBy = "university", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "studentPrimaryKey.university", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<StudentDTO> students;
 

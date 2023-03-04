@@ -5,11 +5,13 @@ import com.project.sbt.model.dto.StudentDTO;
 import com.project.sbt.model.dto.UniversityDTO;
 import com.project.sbt.model.request.UniversityRequest;
 import com.project.sbt.response.ServiceResponse;
+import com.project.sbt.services.CommonService;
 import com.project.sbt.services.UniversityService;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,6 +21,9 @@ public class UniversityController {
 
     @Autowired
     UniversityService univesityService;
+
+    @Autowired
+    CommonService commonService;
 
     @PostMapping("/signup")
     public ServiceResponse register(@RequestBody @NonNull final UniversityRequest universityRequest,
@@ -45,6 +50,17 @@ public class UniversityController {
 
         return new ServiceResponse(universityDTO,HttpStatus.OK);
     }
+
+
+    @PostMapping("/authenticate/file")
+    public ServiceResponse parseFileData(@RequestParam(name = "file") MultipartFile inputFile) throws ClassNotFoundException {
+
+
+        List payload =  commonService.readInputFile(inputFile, "StudenDTO");
+
+        return new ServiceResponse(payload,HttpStatus.OK);
+    }
+
 
 
 }

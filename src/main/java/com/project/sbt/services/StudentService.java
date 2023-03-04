@@ -3,6 +3,7 @@ package com.project.sbt.services;
 import com.project.sbt.constants.Constants;
 import com.project.sbt.model.dto.StudentDTO;
 import com.project.sbt.model.dto.UniversityDTO;
+import com.project.sbt.model.keys.StudentPrimaryKey;
 import com.project.sbt.model.request.CertificateRequest;
 import com.project.sbt.model.request.StudentRequest;
 import com.project.sbt.repository.StudentRepository;
@@ -41,7 +42,7 @@ public class StudentService {
         public List<StudentDTO> getAllUnregisteredStudentsForUniversity(Integer unversityId){
 
                 UniversityDTO universityDTO = univesityService.getUniversityById(unversityId);
-                return studentRepository.findByUniversityAndStatus(universityDTO, Constants.UNAPPROVED_STATUS);
+                return studentRepository.findAll();
 
         }
 
@@ -55,8 +56,7 @@ public class StudentService {
 
                 if(university != null){
 
-                        StudentDTO studentDTO = getStudent(studentRequest);
-                        studentDTO.setUniversity(university);
+                        StudentDTO studentDTO = getStudent(studentRequest, university);
                         studentDTO = (StudentDTO) commonService.updateStatus(studentDTO,action);
                         return studentRepository.save(studentDTO);
                 }
@@ -65,12 +65,16 @@ public class StudentService {
 
         }
 
-        public StudentDTO getStudent(StudentRequest studentRequest){
+        public StudentDTO getStudent(StudentRequest studentRequest, UniversityDTO universityDTO){
+
+            StudentPrimaryKey  studentPrimaryKey = new StudentPrimaryKey();
+            studentPrimaryKey.setStudentId(studentRequest.getStudentId());
+            studentPrimaryKey.setUniversity(universityDTO);
 
                 StudentDTO studentDTO = StudentDTO.builder()
-                        .studentId(studentRequest.getStudentId())
                         .studentName(studentRequest.getStudentName())
                         .studentEmail(studentRequest.getStudentEmail())
+                        .studentPrimaryKey(studentPrimaryKey)
                         .build();
 
                 return studentDTO;
@@ -102,13 +106,14 @@ public class StudentService {
                 if(action.equals("save") && !hadErrors.get()){
 
                       List<StudentDTO> studentDTOList =  studentRequestList.stream()
-                                        .map(this::getStudent)
+                                        .map(studentRequest -> getStudent(studentRequest, universityDTO))
                                         .map(p -> {
-                                                p.setEnabled(false);
-                                                p.setStatus(Constants.UNAPPROVED_STATUS);
-                                                p.setVerificationCode( UUID.randomUUID().toString());
-                                                p.setUniversity(universityDTO);
-                                                return  p;
+
+                                            p.setEnabled(false);
+                                            p.setStatus(Constants.UNAPPROVED_STATUS);
+                                            p.setVerificationCode( UUID.randomUUID().toString());
+
+                                            return  p;
                                         }).collect(Collectors.toList());
 
                         studentRepository.saveAll(studentDTOList);
@@ -135,8 +140,9 @@ public class StudentService {
 
     public BaseMessageResponse vefifyStudent(StudentRequest studentRequest, String verificationCode) {
 
+            // TODO
             StudentDTO studentDTO = studentRepository
-                    .findByStudentIdAndVerificationCode(studentRequest.getStudentId(),verificationCode);
+                    .findById(null).orElse(null);
 
             if(studentDTO == null)
                 return new BaseMessageResponse("Verfication Code. Incorrect Username", false,null);
@@ -166,7 +172,8 @@ public class StudentService {
                     }
 
                     if(hadErrors.get()){
-                        StudentDTO studentDTO = studentRepository.findByStudentIdAndIsEnabled(certificateInfo.getStudentId(),true);
+                        // TODO
+                        StudentDTO studentDTO = studentRepository.findById(null).orElse(null);
 
                         if(studentDTO == null){
                             hadErrors.set(true);

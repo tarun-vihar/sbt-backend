@@ -33,7 +33,7 @@ public class EmailService {
 
 
 
-        String encodeStudentId = URLEncoder.encode(student.getStudentId(), StandardCharsets.UTF_8.toString());
+        String encodeStudentId = URLEncoder.encode(student.getStudentPrimaryKey().toString(), StandardCharsets.UTF_8.toString());
         String encodedToken = URLEncoder.encode(student.getVerificationCode(), StandardCharsets.UTF_8.toString());
 
         String subject = "Verification Email";

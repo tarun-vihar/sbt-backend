@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CertificateRequest extends StudentRequest{
+public class CertificateRequest extends StudentRequest {
 
     @NotNull(message = "CGPA  cannot be empty")
     @JsonProperty("cgpa")
