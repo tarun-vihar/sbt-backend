@@ -61,5 +61,5 @@ public class UniversityController {
         return new ServiceResponse(payload,HttpStatus.OK);
     }
 
-    
+
 }
