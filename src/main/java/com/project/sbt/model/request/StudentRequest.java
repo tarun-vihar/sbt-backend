@@ -15,10 +15,10 @@ import lombok.NoArgsConstructor;
 public class StudentRequest {
 
     @NotNull(message = "Student ID cannot be empty")
-    @JsonProperty("id")
+    @JsonProperty("studentId")
     private String studentId;
 
-    @NotNull(message = "Student Email cannot be empty")
+    @NotNull(message = "Student Name cannot be empty")
     @JsonProperty("studentName")
     private String studentName;
 
@@ -26,12 +26,21 @@ public class StudentRequest {
     @JsonProperty("studentEmail")
     private String studentEmail;
 
+    @NotNull(message = "Program name is mandatory")
+    @JsonProperty("program")
+    private String program;
 
-    @JsonProperty("uID")
+    @NotNull(message = "Department is mandatory")
+    @JsonProperty("department")
+    private String department;
+
+
+    @JsonProperty("universityId")
     private Integer universityId;
 
-    @JsonProperty("accountAddress")
-    private String walletAddres;
+    @JsonProperty("studentWalletAddress")
+    private String studentWalletAddress;
+
 
     private String error;
 }

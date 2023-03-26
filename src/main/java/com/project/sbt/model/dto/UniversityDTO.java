@@ -32,14 +32,13 @@ public class UniversityDTO extends AbstractEntity{
     @Column(name = "university_address")
     private String universityAddress;
 
-    @Column(name = "wallet_id", unique = true, nullable = false)
-    private String walletId;
+    @Column(name = "univeristy_wallet_Address", unique = true, nullable = false)
+    private String universityWalletAddress;
 
-    @Column(name = "contact_number")
-    private String contactNumber;
+    @Column(name = "email", unique = true, nullable = false)
+    private String universityEmail;
 
-    @Column(name = "url")
-    private String url;
+
 
     @OneToMany(mappedBy = "studentPrimaryKey.university", fetch = FetchType.LAZY)
     @JsonIgnore

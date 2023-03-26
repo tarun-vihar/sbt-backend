@@ -44,22 +44,18 @@ public class UniversityController {
     }
 
     @PostMapping("/authenticate")
-    public ServiceResponse getUniversityInfo( @RequestParam(name = "accountAddress") String wallterId){
+    public ServiceResponse getUniversityInfo( @RequestBody UniversityRequest universityRequest){
 
+        String wallterId = universityRequest.getUniversityWalletAddress();
         UniversityDTO universityDTO = univesityService.getUnivesityByWalletId(wallterId);
 
         return new ServiceResponse(universityDTO,HttpStatus.OK);
     }
 
 
-    @PostMapping("/authenticate/file")
-    public ServiceResponse parseFileData(@RequestParam(name = "file") MultipartFile inputFile) throws ClassNotFoundException {
 
 
-        List payload =  commonService.readInputFile(inputFile, "StudenDTO");
 
-        return new ServiceResponse(payload,HttpStatus.OK);
-    }
 
 
 }

@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UniversityRepostiory extends JpaRepository<UniversityDTO,Integer> {
 
-    public UniversityDTO findByWalletId(String walletId);
+    public UniversityDTO findByUniversityWalletAddress(String walletId);
 }

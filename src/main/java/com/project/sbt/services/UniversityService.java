@@ -31,8 +31,6 @@ public class UniversityService {
     public  UniversityDTO saveUniversity(UniversityRequest universityRequest, String action){
 
         UniversityDTO university = getUnivesity(universityRequest);
-        university = (UniversityDTO) commonService.updateStatus(university,action);
-
 
 
         return universityRepostiory.save(university);
@@ -44,8 +42,8 @@ public class UniversityService {
                 .universityName(universityRequest.getUniversityName())
                 .universityAddress(universityRequest.getUniversityAddress())
                 .univesityCode(universityRequest.getUniversityCode())
-                .walletId(universityRequest.getWalletAddres())
-                .contactNumber(universityRequest.getContactNumber())
+                .universityWalletAddress(universityRequest.getUniversityWalletAddress())
+                .universityEmail(universityRequest.getUniversityEmail())
                 .build();
 
         return university;
@@ -53,6 +51,6 @@ public class UniversityService {
 
 
     public UniversityDTO getUnivesityByWalletId(String wallterId) {
-        return universityRepostiory.findByWalletId(wallterId);
+        return universityRepostiory.findByUniversityWalletAddress(wallterId);
     }
 }

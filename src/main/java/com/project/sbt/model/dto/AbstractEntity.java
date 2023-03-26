@@ -1,5 +1,6 @@
 package com.project.sbt.model.dto;
 
+import com.project.sbt.constants.Constants;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
@@ -7,6 +8,7 @@ import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -25,7 +27,7 @@ public abstract class AbstractEntity {
 
 
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
 

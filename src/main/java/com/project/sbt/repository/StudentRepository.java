@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface StudentRepository extends JpaRepository<StudentDTO, StudentPrimaryKey> {
 //
-    public StudentDTO findByWalletId(String walletId);
+    public StudentDTO findByStudentWalletAddress(String walletId);
 
     List<StudentDTO> findAllByStudentPrimaryKeyUniversityAndIsEnabled(UniversityDTO university, boolean isEnabled);
 

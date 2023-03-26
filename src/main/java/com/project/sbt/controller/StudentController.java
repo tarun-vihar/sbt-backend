@@ -68,6 +68,7 @@ public class StudentController {
                                     @RequestParam(name = "token") String uuid) throws UnsupportedEncodingException {
 
         String verificationCode  = URLDecoder.decode(uuid, StandardCharsets.UTF_8.toString());
+
         studentRequest.setStudentId(URLDecoder.decode(studentRequest.getStudentId(), StandardCharsets.UTF_8.toString()));
         BaseMessageResponse studentVerificationResponse = studentService.vefifyStudent(studentRequest,verificationCode);
 

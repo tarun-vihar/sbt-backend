@@ -31,8 +31,8 @@ public class StudentDTO extends AbstractEntity {
     private String studentEmail;
 
 
-    @Column(name = "wallet_id")
-    private String walletId;
+    @Column(name = "student_wallet_Address")
+    private String studentWalletAddress;
 
 
     @Column(name = "verification_code")
@@ -40,6 +40,15 @@ public class StudentDTO extends AbstractEntity {
 
     @Column(name = "is_enabled")
     private boolean isEnabled;
+
+
+    @Column(name = "program", nullable = false)
+    private String program;
+
+    @Column(name = "department", nullable = false)
+    private String department;
+
+
 
 
 

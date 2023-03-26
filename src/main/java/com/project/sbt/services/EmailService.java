@@ -1,6 +1,8 @@
 package com.project.sbt.services;
 
+import com.project.sbt.constants.EmailConstants;
 import com.project.sbt.model.dto.StudentDTO;
+import com.project.sbt.model.request.EmailRequest;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.Response;
@@ -15,8 +17,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+
 
 @Service
 public class EmailService {
@@ -26,32 +27,19 @@ public class EmailService {
     private String apiKey;
 
 
+    public Response sendEmail(EmailRequest emailRequest) throws IOException{
 
+        Email from = new Email(EmailConstants.senderEmail);
+        Content emailContent = new Content("text/plain", emailRequest.getContent());
+        Mail mail = new Mail(from, emailRequest.getSubject(), new Email(emailRequest.getToAddress()), emailContent);
 
-    public void sendEmail(StudentDTO student) throws IOException {
-        Email from = new Email("sbt.applicants@gmail.com");
-
-
-
-        String encodeStudentId = URLEncoder.encode(student.getStudentPrimaryKey().toString(), StandardCharsets.UTF_8.toString());
-        String encodedToken = URLEncoder.encode(student.getVerificationCode(), StandardCharsets.UTF_8.toString());
-
-        String subject = "Verification Email";
-
-        String content = "Dear " + student.getStudentName() + ", please click the link to verify your account: http://localhost:4200/verify?"
-                + "&studentId=" + encodeStudentId + "&token=" + encodedToken;
-
-
-        Content emailContent = new Content("text/plain",content);
-
-        Mail mail = new Mail(from, subject, new Email(student.getStudentEmail()), emailContent);
-
-        System.out.println("Api " + apiKey);
         SendGrid sg = new SendGrid(apiKey);
         Request request = new Request();
         request.setMethod(Method.POST);
         request.setEndpoint("mail/send");
         request.setBody(mail.build());
         Response response = sg.api(request);
+        return response;
+
     }
 }

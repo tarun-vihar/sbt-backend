@@ -1,19 +1,27 @@
 package com.project.sbt.services;
 
 import com.project.sbt.constants.Constants;
+import com.project.sbt.constants.EmailConstants;
 import com.project.sbt.model.dto.StudentDTO;
 import com.project.sbt.model.dto.UniversityDTO;
 import com.project.sbt.model.keys.StudentPrimaryKey;
 import com.project.sbt.model.request.CertificateRequest;
+import com.project.sbt.model.request.EmailRequest;
+import com.project.sbt.model.request.StudentInfo;
 import com.project.sbt.model.request.StudentRequest;
 import com.project.sbt.repository.StudentRepository;
 import com.project.sbt.response.BaseMessageResponse;
+import com.sendgrid.Response;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -29,8 +37,7 @@ public class StudentService {
         @Autowired
         UniversityService univesityService;
 
-        @Autowired
-        CommonService commonService;
+
 
         @Autowired
         Validator validator;
@@ -47,7 +54,7 @@ public class StudentService {
         }
 
         public StudentDTO getStudentInfo(String walletId){
-                return studentRepository.findByWalletId(walletId);
+                return studentRepository.findByStudentWalletAddress(walletId);
         }
 
         public StudentDTO saveStudent(StudentRequest studentRequest, String action){
@@ -57,7 +64,6 @@ public class StudentService {
                 if(university != null){
 
                         StudentDTO studentDTO = getStudent(studentRequest, university);
-                        studentDTO = (StudentDTO) commonService.updateStatus(studentDTO,action);
                         return studentRepository.save(studentDTO);
                 }
 
@@ -74,6 +80,8 @@ public class StudentService {
                 StudentDTO studentDTO = StudentDTO.builder()
                         .studentName(studentRequest.getStudentName())
                         .studentEmail(studentRequest.getStudentEmail())
+                        .program(studentRequest.getProgram())
+                        .department(studentRequest.getDepartment())
                         .studentPrimaryKey(studentPrimaryKey)
                         .build();
 
@@ -95,7 +103,7 @@ public class StudentService {
 
                                 Set<ConstraintViolation<StudentRequest>> violationSet = validator.validate(studentRequest);
                                 for (ConstraintViolation<StudentRequest> violation : violationSet){
-                                        studentRequest.setError(studentRequest.getError() + " - " + violation.getMessage());
+                                        studentRequest.setError((studentRequest.getError() == null ? "": studentRequest.getError())  + " - " + violation.getMessage());
                                         hadErrors.set(true);
                                 }
                                 return studentRequest;
@@ -103,7 +111,7 @@ public class StudentService {
                         })
                         .collect(Collectors.toList());
 
-                if(action.equals("save") && !hadErrors.get()){
+                if(!hadErrors.get()){
 
                       List<StudentDTO> studentDTOList =  studentRequestList.stream()
                                         .map(studentRequest -> getStudent(studentRequest, universityDTO))
@@ -126,69 +134,129 @@ public class StudentService {
         }
 
         public BaseMessageResponse sendEmail(List<StudentDTO> studentDTOList){
+            List responeList = new ArrayList();
             studentDTOList.forEach(studentDTO -> {
                 try {
-                    emailService.sendEmail(studentDTO);
+
+                    EmailRequest emailRequest = prepareStudentRequest(studentDTO);
+                    Response res = emailService.sendEmail(emailRequest);
+                    responeList.add(res);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
 
-            return  new BaseMessageResponse("Uploaded Sucessfully, Verification emails are sent",true, null);
+            return  new BaseMessageResponse(responeList,true, null);
         }
+
+    private EmailRequest prepareStudentRequest(StudentDTO studentDTO) throws UnsupportedEncodingException {
+
+            EmailRequest emailRequest = new EmailRequest();
+
+
+            StudentPrimaryKey studentPrimaryKey = studentDTO.getStudentPrimaryKey();
+
+            String encodeStudentId = URLEncoder.encode(studentPrimaryKey.getStudentId().toString(), StandardCharsets.UTF_8.toString());
+            String encodedUniversityId = URLEncoder.encode(studentPrimaryKey.getUniversity().getId()+"",StandardCharsets.UTF_8.toString());
+            String encodedToken = URLEncoder.encode(studentDTO.getVerificationCode(), StandardCharsets.UTF_8.toString());
+
+            String content = "Dear " + studentDTO.getStudentName() + ", please click the link to verify your account: " + EmailConstants.redirectionURL
+                        + "&studentId=" + encodeStudentId + "&universityId=" + encodedUniversityId + "&token=" + encodedToken;
+
+
+            emailRequest.setSubject(EmailConstants.subject);
+            emailRequest.setToAddress(studentDTO.getStudentEmail());
+            emailRequest.setContent(content);
+
+        return emailRequest;
+
+    }
 
 
     public BaseMessageResponse vefifyStudent(StudentRequest studentRequest, String verificationCode) {
 
-            // TODO
+
+            String walletAddress = studentRequest.getStudentWalletAddress();
+            if(walletAddress == null){
+                return new BaseMessageResponse(" Wallet Address is empty/incorrect format", false,null);
+            }
+
+            StudentPrimaryKey studentPrimaryKey = getStudentKey(studentRequest.getStudentId(), studentRequest.getUniversityId());
+
             StudentDTO studentDTO = studentRepository
-                    .findById(null).orElse(null);
+                    .findByStudentPrimaryKeyAndVerificationCode(studentPrimaryKey,verificationCode);
 
             if(studentDTO == null)
-                return new BaseMessageResponse("Verfication Code. Incorrect Username", false,null);
+                return new BaseMessageResponse("Incorrect Student Id or Invalid Verification Code", false,null);
 
             studentDTO.setEnabled(true);
-            studentDTO.setWalletId(studentRequest.getWalletAddres());// metamask address
+            studentDTO.setStatus(Constants.APPROVED_STATUS);
+            studentDTO.setStudentWalletAddress(studentRequest.getStudentWalletAddress());// metamask address
 
             studentRepository.save(studentDTO);
 
-            return new BaseMessageResponse("Successfully Verifcated", true, studentDTO);
+            return new BaseMessageResponse("Successfully Verified", true, studentDTO);
     }
 
 
 
 
-    public BaseMessageResponse verifyCertificate(List<CertificateRequest> certificateRequestList, String action, Integer university_id) {
+    public BaseMessageResponse verifyCertificate(List<CertificateRequest> certificateRequestList, String action, Integer universityId) {
 
-        AtomicBoolean hadErrors = new AtomicBoolean(false);
+
         certificateRequestList.stream()
                 .map( certificateInfo -> {
 
+                    boolean hadError = false;
+                    StudentPrimaryKey studentPrimaryKey = getStudentKey(certificateInfo.getStudentId(), universityId);
+                    StudentDTO studentDTO = getStudentById(studentPrimaryKey);
+                    if(studentDTO == null ){
+                        hadError = true;
+                        certificateInfo.setError("Student is not registerd ");
+                    } else if (!studentDTO.isEnabled()) {
+                        hadError = true;
+                        certificateInfo.setError("Student is not verified in the system");
+                    } else {
 
-                    Set<ConstraintViolation<CertificateRequest>> violationSet = validator.validate(certificateInfo);
-                    for (ConstraintViolation<CertificateRequest> violation : violationSet){
-                        certificateInfo.setError(certificateInfo.getError() + " - " + violation.getMessage());
-                        hadErrors.set(true);
+                        certificateInfo.setDepartment(studentDTO.getDepartment());
+                        certificateInfo.setProgram(studentDTO.getProgram());
+                        certificateInfo.setStudentName(studentDTO.getStudentName());
+                        certificateInfo.setStudentEmail(studentDTO.getStudentEmail());
+                        certificateInfo.setStudentWalletAddress(studentDTO.getStudentWalletAddress());
                     }
 
-                    if(hadErrors.get()){
-                        // TODO
-                        StudentDTO studentDTO = studentRepository.findById(null).orElse(null);
+                    if(!hadError){
 
-                        if(studentDTO == null){
-                            hadErrors.set(true);
-                            certificateInfo.setError(certificateInfo.getStudentId() + " is not registerd or authenicated");
-                        }
-                        else {
-                            certificateInfo.setWalletAddres(studentDTO.getWalletId());
+                        Set<ConstraintViolation<CertificateRequest>> violationSet = validator.validate(certificateInfo);
+
+                        for (ConstraintViolation<CertificateRequest> violation : violationSet){
+                            certificateInfo.setError(certificateInfo.getError() + " - " + violation.getMessage());
+
                         }
                     }
+
                     return certificateInfo;
 
                 })
                 .collect(Collectors.toList());
 
-        return new BaseMessageResponse("", hadErrors.get(),certificateRequestList);
+        return new BaseMessageResponse("", true,certificateRequestList);
 
+    }
+
+    public StudentPrimaryKey getStudentKey(String studentId, Integer universityId){
+
+        UniversityDTO universityDTO = univesityService.getUniversityById(universityId);
+
+        StudentPrimaryKey studentPrimaryKey = new StudentPrimaryKey();
+
+        studentPrimaryKey.setUniversity(universityDTO);
+        studentPrimaryKey.setStudentId(studentId);
+
+        return studentPrimaryKey;
+    }
+
+    public StudentDTO getStudentById(StudentPrimaryKey studentPrimaryKey){
+            return studentRepository.findById(studentPrimaryKey).orElse(null);
     }
 }

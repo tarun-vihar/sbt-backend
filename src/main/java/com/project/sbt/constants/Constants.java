@@ -5,5 +5,6 @@ public final class Constants {
     public static final String APPROVED_STATUS = "A";
     public static final String REJECTED_STATUS = "R";
 
+
     private Constants(){}
 }

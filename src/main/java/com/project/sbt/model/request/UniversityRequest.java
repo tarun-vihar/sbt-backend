@@ -14,27 +14,25 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UniversityRequest {
 
-    @JsonProperty("uId")
+    @JsonProperty("universityCode")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String universityCode;
 
     @NotNull(message = "University name cannot  be empty")
-    @JsonProperty("uName")
+    @JsonProperty("universityName")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String universityName;
 
-    @JsonProperty("uAddress")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("universityAddress")
     private String universityAddress;
 
-    @JsonProperty("uContactNumber")
-    private String contactNumber;
 
-    @JsonProperty("uEmail")
+    @NotNull(message = "University Email cannot  be empty")
+    @JsonProperty("universityEmail")
     private String universityEmail;
 
-    @NotNull(message = "Wallet address is mandatory ")
-    @JsonProperty("accountAddress")
+    @NotNull(message = "Metamask Wallet address is mandatory ")
+    @JsonProperty("universityWalletAddress")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String walletAddres;
+    private String universityWalletAddress;
 }
