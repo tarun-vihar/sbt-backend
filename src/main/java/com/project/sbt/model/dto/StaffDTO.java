@@ -13,7 +13,7 @@ import lombok.*;
 @Setter
 @Builder
 @Table(name = "FF_STAFF")
-public class StaffDTO {
+public class StaffDTO extends AbstractEntity {
 
     @EmbeddedId
     private StaffPrimaryKey staffPrimaryKey;

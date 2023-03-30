@@ -12,7 +12,7 @@ target/
 .settings
 .springBeans
 .sts4-cache
-secrets.txt
+src/main/resources/secrets.env
 
 ### IntelliJ IDEA ###
 .idea
