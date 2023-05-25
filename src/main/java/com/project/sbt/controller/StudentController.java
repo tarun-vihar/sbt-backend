@@ -1,6 +1,7 @@
 package com.project.sbt.controller;
 
 import com.project.sbt.model.dto.StudentDTO;
+import com.project.sbt.model.keys.StudentPrimaryKey;
 import com.project.sbt.model.request.CertificateRequest;
 import com.project.sbt.model.request.StudentRequest;
 import com.project.sbt.response.BaseMessageResponse;
@@ -86,6 +87,17 @@ public class StudentController {
         return new ServiceResponse(studentUploadResponse, HttpStatus.OK);
 
     }
+
+    @PostMapping("/student-details")
+    public ServiceResponse getStudentInfo(@RequestBody StudentRequest studentRequest){
+
+        StudentPrimaryKey studentPrimaryKey = studentService.getStudentKey(studentRequest.getStudentId(), studentRequest.getUniversityId());
+        StudentDTO studentDTO = studentService.getStudentById(studentPrimaryKey);
+
+        return new ServiceResponse(studentDTO,HttpStatus.OK);
+
+    }
+
 
 
 

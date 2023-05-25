@@ -6,7 +6,7 @@ public class EmailConstants {
 
     public static final String subject = "Verification Email";
 
-    public static final String redirectionURL = "http://localhost:4200/verify?";
+    public static final String redirectionURL = "http://localhost:4200/verify";
 
     private EmailConstants(){}
 }

@@ -3,6 +3,8 @@ package com.project.sbt.controller;
 
 import com.project.sbt.model.dto.StudentDTO;
 import com.project.sbt.model.dto.UniversityDTO;
+import com.project.sbt.model.keys.StudentPrimaryKey;
+import com.project.sbt.model.request.StudentRequest;
 import com.project.sbt.model.request.UniversityRequest;
 import com.project.sbt.response.ServiceResponse;
 import com.project.sbt.services.CommonService;
@@ -27,9 +29,12 @@ public class UniversityController {
 
     @PostMapping("/signup")
     public ServiceResponse register(@RequestBody @NonNull final UniversityRequest universityRequest,
-                                    @RequestParam(name = "action", required = false,defaultValue = "save") String action){
+                                    @RequestParam(name = "action", required = false,defaultValue = "save") String action,
+                                    @RequestParam(name = "id", required = false) String universityId){
 
-        UniversityDTO university =  univesityService.saveUniversity(universityRequest,action);
+
+
+        UniversityDTO university =  univesityService.saveUniversity(universityRequest,action,universityId);
 
         return new ServiceResponse(university, HttpStatus.OK);
     }
@@ -43,14 +48,29 @@ public class UniversityController {
 
     }
 
+    @GetMapping("/get-all-unapproved")
+    public ServiceResponse getAllUnapproved(){
+        List<UniversityDTO> unapprovedList = univesityService.getAllUnapproved();
+
+        return new ServiceResponse(unapprovedList);
+    }
+
     @PostMapping("/authenticate")
     public ServiceResponse getUniversityInfo( @RequestBody UniversityRequest universityRequest){
 
         String wallterId = universityRequest.getUniversityWalletAddress();
         UniversityDTO universityDTO = univesityService.getUnivesityByWalletId(wallterId);
 
+        if(universityDTO == null){
+
+            return new ServiceResponse("No University Found",HttpStatus.OK);
+
+        }
+
         return new ServiceResponse(universityDTO,HttpStatus.OK);
     }
+
+
 
 
 

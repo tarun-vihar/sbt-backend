@@ -23,7 +23,8 @@ public class StaffController {
     StaffService staffService;
 
     @PostMapping("/staff/get-info")
-    public ServiceResponse getStudentInfo(@RequestBody String wallterId){
+    public ServiceResponse getStaffInfo(@RequestBody StaffRequest staffRequest){
+
 
 
         return null;
